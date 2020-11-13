@@ -13,22 +13,25 @@ import websockets
 
 class PALbot(discord.Client):
     
-    async def on_ready(self):
+    async def on_ready(self,banned=["@PAL"]):
         print('Logged on as', self.user)
         self.change_status.start()
         self.dataStruct={}
         self.questions=0
+        self.banned=banned
     async def on_message(self, message):
         # don't respond to ourselves
         if message.author == self.user: #do not reply to self
             return
         #log question
-        info=[message.channel,""] #store channel from and messages
-        if message.author.name not in self.dataStruct:
-            self.questions+=1 #increase message count for admin
-        arr=self.dataStruct.get(message.author.name,info)[1]+" "+message.content.replace(":::","/:").replace("@@@","/@")
-        #add all messages from that user
-        self.dataStruct[message.author.name]=[info[0],arr]
+        role=message.author.roles[0].name
+        if role not in self.banned: #don't anser these people
+            info=[message.channel,""] #store channel from and messages
+            if message.author.name not in self.dataStruct:
+                self.questions+=1 #increase message count for admin
+            arr=self.dataStruct.get(message.author.name,info)[1]+" "+message.content.replace(":::","/:").replace("@@@","/@")
+            #add all messages from that user
+            self.dataStruct[message.author.name]=[info[0],arr]
     @tasks.loop(seconds=60*60*24) #every day email
     async def change_status(self): #Notifications
         print("email: There are ",self.questions,"Currently unanswered") #chage to email
@@ -68,4 +71,4 @@ asyncio.get_event_loop().run_until_complete(
 websockets.serve(PALmentor, port=4040)) #listen for pal mentors
 
 #Run the discord bot
-client.run('Nzc2NDM5ODg0Njk2MTI1NDQw.X605_g.uXkad8-L5jNACtHT5-ICKWv-L6k')
+client.run('TOKEN')
