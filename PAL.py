@@ -24,8 +24,13 @@ class PALbot(discord.Client):
         if message.author == self.user: #do not reply to self
             return
         #log question
-        role=message.author.roles[0].name
-        if role not in self.banned: #don't anser these people
+        Pass=False
+        role=""
+        try:
+            role=message.author.roles[0].name #gather the role of the user
+        except AttributeError: #if DM
+            Pass=True
+        if role not in self.banned or Pass: #don't anser these people
             info=[message.channel,""] #store channel from and messages
             if message.author.name not in self.dataStruct:
                 self.questions+=1 #increase message count for admin
@@ -35,11 +40,13 @@ class PALbot(discord.Client):
     @tasks.loop(seconds=60*60*24) #every day email
     async def change_status(self): #Notifications
         print("email: There are ",self.questions,"Currently unanswered") #chage to email
-    async def messageChat(self,message,c):
+    async def messageChat(self,message,c): #message discord with given channel
         await c.send(message)
 client=PALbot()
 
 async def PALmentor(websocket, path):
+    #Admin control loop
+    #Called when admin connects to the server
     print("admin")
     try:
         async for message in websocket:
@@ -63,12 +70,15 @@ async def PALmentor(websocket, path):
                     if len(string)>500: #prevent websocket error
                         break
                 await websocket.send(string[:-3]) #send list of to add
+            elif message[0:7]=="DELETE:":
+                message=message.replace("DELETE:","") #remove from string
+                client.dataStruct.pop(message) #remove from data
     except websockets.exceptions.ConnectionClosedError:
             print("Admin left")
-
+    
 #Run the PAL server side
 asyncio.get_event_loop().run_until_complete(
 websockets.serve(PALmentor, port=4040)) #listen for pal mentors
 
 #Run the discord bot
-client.run('TOKEN')
+client.run('T')
