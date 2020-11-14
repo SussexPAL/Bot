@@ -1,101 +1,107 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>PAL Mentor answer question</title>
+  <title>PAL Mentor answer question</title>
 </head>
+
 <body>
-<style>
-	body {
-		margin-left: auto;
-		margin-right: auto;
-		width: 25em;
-		background-color:#4dc9ff;
-	}
-	.title{
-		color:white;
-		font-family: "Lucida Console", Courier, monospace;
-	}
-	.button {
-		
-		background-color: blue; /* blue*/
-	    border: none;
-	    color: white;
-	    padding: 15px 32px;
-	    text-align: center;
-	    text-decoration: none;
-	    display: inline-block;
-	    font-size: 16px;
-	}
-	.Question {
-		
-		font-family: "Lucida Console", Courier, monospace;
-		background-color: white; /* blue*/
-	    border: none;
-	    color: black;
-	    padding: 15px 32px;
-	}
-	
-</style>
-<h1 class="title">PAL mentor basic interface</h1>
-<div id="content">
+  <style>
+    body {
+      margin-left: auto;
+      margin-right: auto;
+      width: 25em;
+      background-color: #4dc9ff;
+    }
 
-</di>
-<div id="menu">
+    .title {
+      color: white;
+      font-family: "Lucida Console", Courier, monospace;
+    }
 
-</div>
-<script>
-let socket = new WebSocket('ws://192.168.0.20:4040');
-var names=[];
-socket.onopen = function(e) {
-  socket.send("CONNECT");
-};
-socket.onmessage = function(event) {
-  console.log(event.data);
-  var messages=event.data;
-  if(messages!=""){
-	  messages=messages.split(":::");
-	  var val="";
-	  for(i=0;i<messages.length;i++)
-	  {
-		val=messages[i].split("@@@")[1];
-		document.getElementById("content").innerHTML+='<p class="Question" id="Q'+i+'">'+val+
-		'</p><button class="button" id="A'+i+'" onClick="Answer('+i+')">Answer Question</button>'
-		+'<button class="button" id="D'+i+'" onClick="Delete('+i+')">Delete Question</button>';
-		names.push(messages[i].split("@@@")[0]);
-	  }
-  }
-};
+    .button {
 
-socket.onclose = function(event) {
-  if (event.wasClean) {
-    alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
-  } else {
-    // e.g. server process killed or network down
-    // event.code is usually 1006 in this case
-    alert('[close] Connection died');
-  }
-};
+      background-color: blue;
+      /* blue*/
+      border: none;
+      color: white;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+    }
 
-socket.onerror = function(error) {
-  alert(`[error] ${error.message}`);
-};
-function Answer(val) {
-  var txt = prompt("Please enter your name:", "");
-  if (!(txt == null || txt == "")) {
-	
-    socket.send("ANSWER:"+names[val]+":::"+txt);
-	document.getElementById("Q"+val).remove();
-	  document.getElementById("A"+val).remove();
-	  document.getElementById("D"+val).remove();
-  } 
-  
-}
-function Delete(val) {
-  socket.send("DELETE:"+names[val]);
-  document.getElementById("Q"+val).remove();
-  document.getElementById("A"+val).remove();
-  document.getElementById("D"+val).remove();
-}
-</script>
+    .Question {
+
+      font-family: "Lucida Console", Courier, monospace;
+      background-color: white;
+      /* blue*/
+      border: none;
+      color: black;
+      padding: 15px 32px;
+    }
+  </style>
+  <h1 class="title">PAL mentor basic interface</h1>
+  <div id="content">
+
+    </di>
+    <div id="menu">
+
+    </div>
+    <script>
+      let socket = new WebSocket('ws://192.168.0.20:4040');
+      var names = [];
+      socket.onopen = function (e) {
+        socket.send("CONNECT");
+      };
+      socket.onmessage = function (event) {
+        console.log(event.data);
+        var messages = event.data;
+        if (messages != "") {
+          messages = messages.split(":::");
+          var val = "";
+          for (i = 0; i < messages.length; i++) {
+            val = messages[i].split("@@@")[1];
+            document.getElementById("content").innerHTML += '<p class="Question" id="Q' + i + '">' + val +
+              '</p><button class="button" id="A' + i + '" onClick="Answer(' + i + ')">Answer Question</button>'
+              + '<button class="button" id="D' + i + '" onClick="Delete(' + i + ')">Delete Question</button>';
+            names.push(messages[i].split("@@@")[0]);
+          }
+        }
+      };
+
+      socket.onclose = function (event) {
+        if (event.wasClean) {
+          alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+        } else {
+          // e.g. server process killed or network down
+          // event.code is usually 1006 in this case
+          alert('[close] Connection died');
+        }
+      };
+
+      socket.onerror = function (error) {
+        alert(`[error] ${error.message}`);
+      };
+      function Answer(val) {
+        var txt = prompt("Please enter your name:", "");
+        if (!(txt == null || txt == "")) {
+
+          socket.send("ANSWER:" + names[val] + ":::" + txt);
+          document.getElementById("Q" + val).remove();
+          document.getElementById("A" + val).remove();
+          document.getElementById("D" + val).remove();
+        }
+
+      }
+      function Delete(val) {
+        socket.send("DELETE:" + names[val]);
+        document.getElementById("Q" + val).remove();
+        document.getElementById("A" + val).remove();
+        document.getElementById("D" + val).remove();
+      }
+    </script>
 </body>
+
 </html>
