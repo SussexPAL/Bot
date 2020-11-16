@@ -26,16 +26,16 @@ class PALbot(discord.Client):
     #Stores unanswered questions
     #Removes when answered in chat by PAL mentor
     #Alerts PAL mentors to answer questions
-    async def on_ready(self,banned=["@CEO"]):
+    async def on_ready(self,banned=["@PAL"]):
         print('Logged on as', self.user)
         self.questions=0
         self.change_status.start()
         self.check_calendar.start()
         self.dataStruct={}
         self.banned=banned
-        self.getQuestion="testing-site"
+        self.getQuestion="questions"
         #bot-testing
-        self.setAnswer="testing-site"
+        self.setAnswer="pal-text"
         self.channels={}
         for i in self.get_all_channels():
                 self.channels[str(i)]=i
