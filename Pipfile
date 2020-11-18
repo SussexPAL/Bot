@@ -8,6 +8,10 @@ black = "*"
 
 [packages]
 discord-py = "==1.5.1"
+websockets = "*"
+google-api-python-client = "*"
+google-auth-httplib2 = "*"
+google-auth-oauthlib = "*"
 
 [requires]
 python_version = "3.8"
