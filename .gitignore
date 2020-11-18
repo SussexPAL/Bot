@@ -1,2 +1,4 @@
 .vscode
 auth.ini
+credentials.json
+token.pickle
