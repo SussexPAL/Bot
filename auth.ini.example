@@ -1,3 +1,7 @@
 [secret]
 
 token = 1234
+
+[google]
+
+calendar_id = MY_CALENDAR@group.calendar.google.com

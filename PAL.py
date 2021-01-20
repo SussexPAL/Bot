@@ -1,6 +1,7 @@
 """
 PAL bot code
 Written by Dexter Shepherd, aged 19
+           Niall Coleman-Clarke
 Code runs and takes in questions from students
 It also awaits requests from the web from pal mentors, allowing them to answer questions. 
 """
@@ -12,18 +13,26 @@ import asyncio
 import websockets
 import datetime
 import configparser
+import datetime
+import pytz
+
+from src.calendar_integration import Calendar
 
 
 # Environment variables can be configured on hosting services
 TOKEN = os.environ.get("DISCORD_TOKEN")
+CALENDAR_ID = os.environ.get("GOOGLE_CALENDAR_ID")
 
-if not TOKEN:
+if not TOKEN or not CALENDAR_ID:
     config = configparser.ConfigParser()
     config.read("auth.ini")
     try:
-        TOKEN = config.get("secret", "token")
+        TOKEN = TOKEN or config.get("secret", "token")
+        CALENDAR_ID = CALENDAR_ID or config.get("google", "google_calendar_id")
     except configparser.NoSectionError:
-        raise Exception("Could not find an auth.ini file with the bot token in it.")
+        raise Exception(
+            "Could not find an auth.ini file with the bot token or google calendar id in it."
+        )
 
 
 class Person:
@@ -47,12 +56,16 @@ class PALbot(discord.Client):
         print("Logged on as", self.user)
         self.questions = 0
         self.change_status.start()
+        self.calendar = Calendar(
+            calendar_id=CALENDAR_ID, credentials_file="google-credentials.json"
+        )
         self.check_calendar.start()
         self.dataStruct = {}
         self.banned = banned
         self.getQuestion = "questions"
         # bot-testing
         self.setAnswer = "pal-text"
+        self.announcements = "pal-announcements"
         self.channels = {}
         for i in self.get_all_channels():
             self.channels[str(i)] = i
@@ -96,7 +109,44 @@ class PALbot(discord.Client):
 
     @tasks.loop(seconds=60 * 60)  # every hour check what is happening
     async def check_calendar(self):  # Notifications
-        pass
+        current_time = datetime.datetime.now(pytz.timezone("Europe/London"))
+        utc_to_english_time = lambda utc_str: datetime.datetime.strptime(
+            utc_str, "%Y-%m-%dT%H:%M:%SZ"
+        ).strftime("%I:%M%p")
+
+        if current_time.hour == 8:
+            todays_events = self.calendar.get_events(
+                min_dt=current_time,
+                max_dt=current_time.replace(hour=0, minute=0, second=0, microsecond=0)
+                + datetime.timedelta(days=1),
+            )
+            todays_events = list(
+                filter(lambda evt: "workshop" in evt["summary"].lower(), todays_events)
+            )
+            if todays_events:
+                await self.messageChat(
+                    "The following workshops are coming up today:\n"
+                    + "\n".join(
+                        evt["summary"]
+                        + " at "
+                        + utc_to_english_time(evt["start"]["dateTime"])
+                        for evt in todays_events
+                    ),
+                    self.channels[self.announcements],
+                )
+        events = self.calendar.get_events(
+            min_dt=current_time, max_dt=current_time + datetime.timedelta(hours=1)
+        )
+        if events:
+            await self.messageChat(
+                "PAL events happening in the next hour:\n"
+                + "\n".join(
+                    evt["summary"]
+                    + " at "
+                    + utc_to_english_time(evt["start"]["dateTime"])
+                ),
+                self.channels[self.announcements],
+            )
 
     @tasks.loop(seconds=60 * 60 * 24)  # every day check and message
     async def change_status(self):  # Notifications

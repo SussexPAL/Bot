@@ -5,6 +5,7 @@ from typing import Any, List
 from datetime import datetime, timezone
 import pickle
 import os.path
+
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -12,11 +13,13 @@ from google.auth.transport.requests import Request
 
 class Calendar:
     creds: object = None
+    token_file: str = None
+    calendar_id: str = None
 
     def __init__(
         self,
         calendar_id: str,
-        credentials_file: str = "credentials.json",
+        credentials_file: str,
         token_file: str = "token.pickle",
     ):
         """A wrapper class for the google calendar library

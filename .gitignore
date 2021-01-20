@@ -1,4 +1,4 @@
 .vscode
 auth.ini
-credentials.json
+google-credentials.json
 token.pickle
